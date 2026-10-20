@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hassen Mtiri — 3D Artist & Technical Developer</title>
+    <meta name="description" content="Portfolio of Hassen Mtiri, 3D Artist and Unity Technical Developer: real-time 3D environments, cinematics, interactive shaders, VR and topology optimization." />
+    <meta name="theme-color" content="#090a0f" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23090a0f'/%3E%3Cpath d='M8 24V8h4l4 7 4-7h4v16h-3.5v-10l-3.5 6h-2l-3.5-6v10z' fill='%23ff5a1f'/%3E%3Ccircle cx='25' cy='7' r='2.5' fill='%2300f0ff'/%3E%3C/svg%3E" />
+    <link rel="preload" as="image" href="./media/hero/hero-detail.webp" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="bar" id="bar">
+      <a class="bar__mark" href="#/" aria-label="Hassen Mtiri — home">
+        <span class="bar__logo-icon">HM</span>
+        <span class="bar__logo-text">HASSEN MTIRI</span>
+      </a>
+      <nav class="bar__nav" aria-label="Primary">
+        <a href="#/work" data-nav="work"><span>01</span> Work</a>
+        <a href="#/about" data-nav="about"><span>02</span> About</a>
+        <a href="#/contact" data-nav="contact"><span>03</span> Contact</a>
+      </nav>
+      <div class="bar__status">
+        <span class="status-dot"></span>
+        <span class="bar__meta">AVAILABLE FOR WORK</span>
+      </div>
+    </header>
+
+    <div id="home">
+      <main id="main" tabindex="-1">
+        <section class="hero" id="top" aria-labelledby="hero-name">
+          <div class="hero__text">
+            <div class="eyebrow">
+              <span class="eyebrow__badge">SYSTEM // ACTIVE</span>
+              <span class="eyebrow__spec">3D ART // REAL-TIME DEV // OPTIMIZATION</span>
+            </div>
+            <h1 id="hero-name" class="hero__name" aria-label="Hassen Mtiri">
+              <span class="line"><span class="ch" aria-hidden="true" style="--i:0">Hassen</span></span>
+              <span class="line"><span class="ch hero__highlight" aria-hidden="true" style="--i:1">Mtiri</span></span>
+            </h1>
+            <p class="hero__role"><span>Technical 3D Artist</span> <span class="hero__role-sep">/</span> <span>Unity Developer</span></p>
+            <p class="hero__intro">Crafting cinematic real-time 3D assets, custom procedural shaders, and ultra-optimized game worlds built for rock-solid 60+ FPS.</p>
+            <div class="hero__cta">
+              <a class="btn btn--primary" href="#/work" data-cursor="Explore">
+                <span>View Selected Work</span>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M7 13l5-5M7 13L2 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </a>
+              <a class="btn btn--glass" href="#/contact">Get in Touch</a>
+            </div>
+          </div>
+
+          <div class="hero__stage" id="lens" data-cursor="Hover Wireframe">
+            <div class="hero__hud-corners">
+              <span class="hud-c hud-c--tl"></span>
+              <span class="hud-c hud-c--tr"></span>
+              <span class="hud-c hud-c--bl"></span>
+              <span class="hud-c hud-c--br"></span>
+            </div>
+            <figure class="hero__main">
+              <img src="./media/hero/hero-detail.webp" width="1600" height="1000" alt="3D character detail view by Hassen Mtiri" fetchpriority="high" />
+              <img class="hero__wire" src="./media/hero/Hero-Wire.webp" width="1600" height="1000" alt="" decoding="async" />
+              <figcaption><span class="badge badge--tech">REAL-TIME INSPECTOR</span> Interactive Mesh ↔ Wireframe</figcaption>
+            </figure>
+            <figure class="hero__detail">
+              <img src="./media/hero/hero-render.webp" width="1600" height="1000" alt="Final 3D render by Hassen Mtiri" decoding="async" />
+              <figcaption><span class="badge badge--render">RENDER</span> Final Pass</figcaption>
+            </figure>
+          </div>
+
+          <ul class="hero__facts" aria-label="Disciplines">
+            <li><span>CINEMATICS</span></li>
+            <li><span>REAL-TIME ENVIRONMENTS</span></li>
+            <li><span>SHADERS &amp; VFX</span></li>
+            <li><span>VR &amp; QUEST 3</span></li>
+            <li><span>TOPOLOGY OPTIMIZATION</span></li>
+          </ul>
+        </section>
+
+        <section id="work" class="work" aria-label="Selected work"></section>
+        <section id="about" class="about" aria-labelledby="about-h"></section>
+        <section id="contact" class="contact" aria-labelledby="contact-h"></section>
+      </main>
+      <footer class="foot">
+        <div class="foot__brand">
+          <span class="foot__logo">HM</span>
+          <span>© <span id="yr"></span> HASSEN MTIRI · 3D ARTIST &amp; UNITY DEVELOPER</span>
+        </div>
+        <div class="foot__meta">
+          <span>REAL-TIME 3D // BLENDER // UNITY // THREE.JS</span>
+        </div>
+      </footer>
+    </div>
+
+    <main id="detail" hidden tabindex="-1"></main>
+
+    <dialog id="viewer" class="viewer" aria-labelledby="viewer-title"></dialog>
+    <div id="cursor" class="cursor" aria-hidden="true"><span></span></div>
+
+    <noscript><p style="padding:2rem;font-family:sans-serif;color:#fff;background:#090a0f">This portfolio requires JavaScript for interactive 3D demos and real-time previews.</p></noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
