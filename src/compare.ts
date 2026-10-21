@@ -4,6 +4,7 @@ import { esc } from './ui';
 export interface CompareData {
   before: string | null;
   after: string | null;
+  originalRendered?: string | null;
   final?: string | null;
   isDemoData: boolean;
   original: { fileSize: string; triangles: string };
@@ -14,17 +15,18 @@ export interface CompareData {
 export function compareHTML(d: CompareData): string {
   const b = media(d.before),
     a = media(d.after),
+    or = media(d.originalRendered),
     f = media(d.final);
   const img = (s: string | null, label: string, cls = '') =>
     s
-      ? `<img class="${cls}" src="${s}" alt="${esc(label)}" width="1600" height="1000" draggable="false" decoding="async" />`
+      ? `<img class="${cls}" src="${s}" alt="${esc(label)}" width="1600" height="898" draggable="false" decoding="async" />`
       : `<div class="slot ${cls}"><span>Replace: ${esc(label)}</span></div>`;
 
   const modeBar = f
     ? `<div class="cmp__modes" role="tablist" aria-label="Comparison stages">
-        <button type="button" role="tab" class="cmp__mode mono" aria-selected="true" data-cmp-pair="before-after" data-left="${b ?? ''}" data-right="${a ?? ''}" data-ltag="01 · Original (59,194 verts)" data-rtag="02 · Cleaned Topology (1,026 verts)">01 Original ↔ 02 Cleaned</button>
-        <button type="button" role="tab" class="cmp__mode mono" aria-selected="false" data-cmp-pair="after-final" data-left="${a ?? ''}" data-right="${f}" data-ltag="02 · Cleaned Topology (1,026 verts)" data-rtag="03 · Rendered Final (Baked)">02 Cleaned ↔ 03 Rendered</button>
-        <button type="button" role="tab" class="cmp__mode mono" aria-selected="false" data-cmp-pair="before-final" data-left="${b ?? ''}" data-right="${f}" data-ltag="01 · Original (59,194 verts)" data-rtag="03 · Rendered Final (1,026 verts)">01 Original ↔ 03 Rendered</button>
+        <button type="button" role="tab" class="cmp__mode mono" aria-selected="true" data-cmp-pair="before-after" data-left="${b ?? ''}" data-right="${a ?? ''}" data-ltag="01 · Original (${esc(d.original.fileSize)})" data-rtag="02 · Optimized (${esc(d.optimized.fileSize)})">01 Original ↔ 02 Optimized</button>
+        ${or ? `<button type="button" role="tab" class="cmp__mode mono" aria-selected="false" data-cmp-pair="rendered-pair" data-left="${or}" data-right="${f}" data-ltag="03 · Original Rendered 45k" data-rtag="04 · Optimized Rendered 4k">03 Rendered 45k ↔ 04 Rendered 4k</button>` : ''}
+        <button type="button" role="tab" class="cmp__mode mono" aria-selected="false" data-cmp-pair="before-final" data-left="${b ?? ''}" data-right="${f}" data-ltag="01 · Original (${esc(d.original.fileSize)})" data-rtag="04 · Optimized Rendered 4k">01 Original ↔ 04 Rendered 4k</button>
       </div>`
     : '';
 
@@ -36,13 +38,13 @@ export function compareHTML(d: CompareData): string {
         <span class="cmp__stat"><span class="cmp__stat-label">VERTS</span> <b>${esc(d.original.fileSize)}</b> <span class="cmp__arrow">→</span> <b class="cmp__val-highlight">${esc(d.optimized.fileSize)}</b></span>
         <span class="cmp__stat-sep">/</span>
         <span class="cmp__stat"><span class="cmp__stat-label">TRIS</span> <b>${esc(d.original.triangles)}</b> <span class="cmp__arrow">→</span> <b class="cmp__val-highlight">${esc(d.optimized.triangles)}</b></span>
-        <span class="cmp__badge mono">−98.3% OPTIMIZED</span>
+        <span class="cmp__badge mono">−93.5% TRIS</span>
       </div>
     </div>
     <div class="cmp" style="--p:50%" data-cmp>
-      <div class="cmp__layer cmp__after">${img(a, 'Cleaned topology image', 'cmp__img-after')}</div>
+      <div class="cmp__layer cmp__after">${img(a, 'Optimized topology image', 'cmp__img-after')}</div>
       <div class="cmp__layer cmp__before">${img(b, 'Original topology image', 'cmp__img-before')}</div>
-      <span class="cmp__tag cmp__tag--l" data-cmp-ltag>01 · Original (59,194 verts)</span><span class="cmp__tag cmp__tag--r" data-cmp-rtag>02 · Cleaned Topology (1,026 verts)</span>
+      <span class="cmp__tag cmp__tag--l" data-cmp-ltag>01 · Original (${esc(d.original.fileSize)})</span><span class="cmp__tag cmp__tag--r" data-cmp-rtag>02 · Optimized (${esc(d.optimized.fileSize)})</span>
       <div class="cmp__handle" role="slider" tabindex="0" aria-label="Comparison divider: original on the left, optimized on the right" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50% original" data-cursor="Drag"><i aria-hidden="true"></i></div>
     </div>
   </div>`;

@@ -31,7 +31,8 @@ function doorDemo(p: Project) {
       </div>
       <div class="doordemo__view" data-door-view>
         <div class="doorstage__loader mono"><span>⚡ LOADING 3D REAL-TIME DOOR…</span></div>
-        <p class="doorstage__hint mono">Interactive 3D WebGL · Click to open / close</p>
+        <p class="doorstage__hint mono">3D model · Drag to rotate · Click to open</p>
+        <button type="button" class="doorstage__expand mono" data-door-expand aria-label="Enlarge this 3D door" aria-pressed="false">⤢ Enlarge</button>
       </div></section>`
     )
     .join('')}</div>`;
@@ -57,6 +58,7 @@ function waterBlock(p: Project) {
         <div class="dfilm__player">
           <div class="dfilm__bar mono"><span>${esc(barTitle)}</span><span data-water-status-bar>Stuck on frame 01 · Click button to start</span></div>
           <div class="flood flood--detail" data-water-stage${dataAttrs}>
+            <span class="rec-badge mono" aria-label="Video recorded in Unity">Recorded in Unity</span>
             ${v ? `<video class="flood__vid" data-water-vid src="${v}" poster="${framePoster(p.video)}" preload="none" playsinline></video>` : pic(p.cover, p.title, 'cover')}
             <span class="flood__level" aria-hidden="true"></span>
             <span class="flood__ruler mono" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
@@ -160,13 +162,13 @@ function unityBlock(p: Project) {
   const firstWf = wf[0] ? media(wf[0]) : null;
   return `<section class="ucin rv">
     <div class="ucin__callout">
-      <span class="mono ucin__tag">REC ● Meta Quest 3 Capture · Standalone VR Optimization</span>
-      <p>This entire cinematic fight sequence was <b>recorded directly on a Meta Quest 3 headset</b> running in real time in Unity — heavily optimized across troop formations, war elephant prefabs, Animator controllers, draw calls and shaders to hit standalone VR performance targets.</p>
+      <span class="mono ucin__tag">REC ● Recorded in Unity · Meta Quest 3 · Standalone VR Optimization</span>
+      <p>This entire cinematic fight sequence was <b>recorded from Unity</b> — captured directly on a Meta Quest 3 headset running in real time — heavily optimized across troop formations, war elephant prefabs, Animator controllers, draw calls and shaders to hit standalone VR performance targets.</p>
     </div>
     <article class="dfilm" data-fblock="${p.slug}:main" data-wf-idx="0">
       <div class="dfilm__grid">
         <div class="dfilm__player">
-          <div class="dfilm__bar mono"><span>Meta Quest 3 real-time capture</span><span>Click poster to play</span></div>
+          <div class="dfilm__bar mono"><span>Recorded in Unity · Meta Quest 3 capture</span><span>Click poster to play</span></div>
           ${videoSlot({ video: p.video, poster: p.cover, title: p.title, label: 'Cinematic fight — Meta Quest 3 capture', ratio: '16/9' })}
         </div>
         ${

@@ -35,7 +35,7 @@ function films(p: Project) {
 function unity(p: Project) {
   const wfCount = p.workflow?.length ?? 0;
   return `<article class="proj proj--unity" id="${p.slug}">
-    <a class="cine rv" ${open(p)} data-preview="${p.previewVideo ? esc(p.previewVideo) : ''}" data-cursor="View" aria-label="Open project: ${esc(p.title)}">${pic(p.cover, p.title, 'cover')}<span class="cine__preview" aria-hidden="true"></span><span class="cine__bars" aria-hidden="true"></span><span class="cine__tc mono" aria-hidden="true">REC ● Captured on Meta Quest 3 — Unity real-time · Optimized${wfCount ? ` · I1–I${wfCount}` : ''}</span></a>
+    <a class="cine rv" ${open(p)} data-preview="${p.previewVideo ? esc(p.previewVideo) : ''}" data-cursor="View" aria-label="Open project: ${esc(p.title)}">${pic(p.cover, p.title, 'cover')}<span class="cine__preview" aria-hidden="true"></span><span class="cine__bars" aria-hidden="true"></span><span class="cine__tc mono" aria-hidden="true">REC ● Recorded in Unity · Meta Quest 3 capture · Optimized${wfCount ? ` · I1–I${wfCount}` : ''}</span></a>
     ${head(p, 'ph--right')}</article>`;
 }
 function water(p: Project) {
@@ -49,6 +49,7 @@ function water(p: Project) {
     : '';
   return `<article class="proj proj--water" id="${p.slug}">
     <div class="flood rv" data-water-stage${dataAttrs}>
+      <span class="rec-badge mono" aria-label="Video recorded in Unity">Recorded in Unity</span>
       ${v ? `<video class="flood__vid" data-water-vid src="${v}" poster="${framePoster(p.video)}" preload="none" muted playsinline></video>` : pic(p.cover, p.title, 'cover')}
       <span class="flood__level" aria-hidden="true"></span>
       <span class="flood__ruler mono" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
@@ -86,7 +87,8 @@ function door(p: Project) {
             </div>
             <div class="doorstage" data-door-view>
               <div class="doorstage__loader mono"><span>⚡ LOADING 3D REAL-TIME DOOR…</span></div>
-              <p class="doorstage__hint mono">Interactive 3D WebGL · Click to open / close</p>
+              <p class="doorstage__hint mono">3D model · Drag to rotate · Click to open</p>
+              <button type="button" class="doorstage__expand mono" data-door-expand aria-label="Enlarge this 3D door" aria-pressed="false">⤢ Enlarge</button>
             </div>
             <div class="doorcard__ctrl">
               <button type="button" class="btn" data-door-toggle aria-pressed="false">Open door</button>
@@ -107,7 +109,7 @@ function vr(p: Project) {
       const wfCount = v.workflow?.length ?? 0;
       return `<li class="rv">
         <a class="cine vrlist__card" ${open(p)} data-preview="${v.previewVideo ? esc(v.previewVideo) : ''}" data-cursor="${v.previewVideo ? 'Preview / Open' : 'View'}" aria-label="Open 3D application: ${esc(v.title)}">
-          <span class="vrlist__img">${pic(v.image, v.title, '3D application image', '', false, '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 420px')}<span class="cine__preview" aria-hidden="true"></span></span>
+          <span class="vrlist__img">${pic(v.image, v.title, '3D application image', '', false, i === 0 ? '(max-width: 960px) 100vw, 1336px' : '(max-width: 960px) 100vw, 660px')}<span class="cine__preview" aria-hidden="true"></span></span>
           <span class="vrlist__t">
             <span><span class="mono">APP/0${i + 1}</span> ${esc(v.title)}</span>
             <span class="vrlist__meta mono">${v.video ? '▶ Video + ' : ''}${wfCount ? `I1–I${wfCount}` : ''}</span>

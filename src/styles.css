@@ -495,6 +495,45 @@ code {
   pointer-events: none;
 }
 
+.hero__badge-card {
+  position: absolute;
+  left: 0.85rem;
+  top: 0.85rem;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  background: rgba(9, 10, 15, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.hero__stage:hover .hero__badge-card,
+.is-lens .hero__badge-card {
+  opacity: 0 !important;
+  transform: translateY(-6px);
+  pointer-events: none;
+}
+.hero__badge-card b {
+  color: #fff;
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  .hero__badge-card {
+    font-size: 0.62rem;
+    padding: 0.28rem 0.55rem;
+    left: 0.5rem;
+    top: 0.5rem;
+  }
+}
+
 .hero__facts {
   grid-column: 1 / -1;
   display: flex;
@@ -997,6 +1036,77 @@ code {
   display: block;
 }
 .door3d__canvas:active { cursor: grabbing; }
+
+/* Enlarge button + enlarged (overlay) 3D door */
+.doorstage__expand {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.85rem;
+  z-index: 4;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(8, 9, 13, 0.8);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.doorstage__expand:hover { background: var(--accent); border-color: var(--accent); }
+body.door-expanded { overflow: hidden; }
+body.door-expanded::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 4, 6, 0.93);
+  z-index: 1000;
+}
+.doorstage.is-expanded, .doordemo__view.is-expanded {
+  position: fixed;
+  inset: 4vh 4vw;
+  width: auto;
+  max-width: none;
+  height: auto;
+  aspect-ratio: auto;
+  z-index: 1001;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 30px 120px rgba(0, 0, 0, 0.9);
+}
+.doorstage.is-expanded .door3d__canvas, .doordemo__view.is-expanded .door3d__canvas { cursor: grab; }
+
+/* "Recorded in Unity" badge (videos captured from the Unity engine) */
+.rec-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(10, 12, 18, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid #ff3b3b;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.rec-badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff3b3b;
+  box-shadow: 0 0 8px #ff3b3b;
+}
 
 /* ─── Optimization Boss Battle Game UI ─── */
 .ogame {
@@ -1754,16 +1864,18 @@ code {
 }
 .vrlist {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--gx);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.5rem, 3vw, 2.5rem) var(--gx);
   align-items: start;
 }
-.vrlist li { display: grid; gap: 0.85rem; }
-.vrlist li:nth-child(2) { transform: translateY(-1.5rem); }
+.vrlist li { display: grid; gap: 1rem; }
+/* first app is the hero card: full width, cinematic ratio */
+.vrlist li:first-child { grid-column: 1 / -1; }
+.vrlist li:first-child .vrlist__img { aspect-ratio: 21/9; }
 .vrlist__img {
   position: relative;
   display: block;
-  aspect-ratio: 4/3;
+  aspect-ratio: 16/10;
   overflow: hidden;
   border-radius: var(--radius-md);
   background: #000;
@@ -1781,19 +1893,19 @@ code {
   padding-top: 0.6rem;
   font-family: var(--sans);
   font-weight: 600;
-  font-size: 1.02rem;
+  font-size: 1.25rem;
   color: #fff;
 }
 .vrlist__t .mono { color: var(--accent); margin-right: 0.4em; }
 .vrlist__meta {
   font-family: var(--mono);
-  font-size: 0.66rem;
+  font-size: 0.7rem;
   color: var(--mute);
   border: 1px solid var(--line);
-  padding: 0.15rem 0.5rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 4px;
 }
-.vrlist__note { color: var(--mute); font-size: 0.88rem; line-height: 1.55; }
+.vrlist__note { color: var(--mute); font-size: 0.98rem; line-height: 1.6; max-width: 70ch; }
 .vrlist__ext {
   display: inline-flex;
   align-items: center;

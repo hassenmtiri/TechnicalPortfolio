@@ -26,7 +26,6 @@ const startVT = (document as unknown as { startViewTransition?: (cb: () => void)
 let homeScroll = 0;
 let lastClicked: HTMLElement | null = null;
 let navIntent = false;
-let cameFromHome = false;
 let view: 'home' | 'detail' = 'home';
 let currentSlug = '';
 
@@ -68,7 +67,28 @@ function syncDoor(demo: HTMLElement, st: DoorState) {
   const stat = $('[data-door-status]', demo);
   if (stat) stat.textContent = `Door ${st.open ? 'open' : 'closed'} · light ${c}${st.dissolved ? ' · panels dissolved' : ''}`;
   const hint = $('.doorstage__hint', demo);
-  if (hint) hint.textContent = st.open ? 'Door open — click to close' : 'Try it — click the door';
+  if (hint) hint.textContent = st.open ? '3D model · Door open · Drag to rotate' : '3D model · Drag to rotate · Click to open';
+}
+
+/* enlarged 3D door (overlay): drag to rotate, wheel / pinch to zoom, Esc or click outside to close */
+let expandedDoor: HTMLElement | null = null;
+function setDoorExpanded(view: HTMLElement | null) {
+  if (expandedDoor) {
+    expandedDoor.classList.remove('is-expanded');
+    const b = expandedDoor.querySelector<HTMLElement>('[data-door-expand]');
+    if (b) { b.textContent = '⤢ Enlarge'; b.setAttribute('aria-pressed', 'false'); }
+    const demo = expandedDoor.closest<HTMLElement>('[data-doordemo]');
+    if (demo) doors.get(demo)?.api?.setExpanded(false);
+  }
+  expandedDoor = view;
+  document.body.classList.toggle('door-expanded', Boolean(view));
+  if (view) {
+    view.classList.add('is-expanded');
+    const b = view.querySelector<HTMLElement>('[data-door-expand]');
+    if (b) { b.textContent = '✕ Close'; b.setAttribute('aria-pressed', 'true'); }
+    const demo = view.closest<HTMLElement>('[data-doordemo]');
+    if (demo) doors.get(demo)?.api?.setExpanded(true);
+  }
 }
 
 function webglOK() {
@@ -118,6 +138,7 @@ function initDoors(root: ParentNode) {
 }
 
 function teardownDoors() {
+  setDoorExpanded(null);
   doors.forEach((st, demo) => {
     st.api?.dispose();
     st.api = null;
@@ -137,13 +158,35 @@ document.addEventListener('click', (e) => {
   const t = e.target as HTMLElement;
 
   const nav = t.closest<HTMLAnchorElement>('.bar__nav a, .bar__mark');
-  if (nav) navIntent = true;
+  if (nav) {
+    navIntent = true;
+    if (view === 'detail') {
+      const href = nav.getAttribute('href') || '#/';
+      const section = href.replace(/^#\/?/, '') || 'top';
+      e.preventDefault();
+      if (location.hash === href) {
+        showHome(section);
+      } else {
+        location.hash = href;
+      }
+      return;
+    }
+  }
 
   const open = t.closest<HTMLElement>('[data-open]');
   if (open) lastClicked = open.querySelector('img, .slot') ?? open.closest('.proj')?.querySelector<HTMLElement>('img') ?? null;
 
   const back = t.closest<HTMLElement>('[data-back]');
-  if (back && cameFromHome) { e.preventDefault(); history.back(); return; }
+  if (back) {
+    e.preventDefault();
+    navIntent = true;
+    if (location.hash === '#/work') {
+      showHome('work');
+    } else {
+      location.hash = '#/work';
+    }
+    return;
+  }
 
   const film = t.closest<HTMLElement>('[data-film]');
   if (film) {
@@ -180,6 +223,13 @@ document.addEventListener('click', (e) => {
   if (play) { mountVideo(play.parentElement!, play.dataset.play!, play.dataset.poster ?? ''); return; }
 
   /* doors */
+  const expandBtn = t.closest<HTMLElement>('[data-door-expand]');
+  if (expandBtn) {
+    const view = expandBtn.closest<HTMLElement>('[data-door-view]')!;
+    setDoorExpanded(expandedDoor === view ? null : view);
+    return;
+  }
+  if (expandedDoor && !t.closest('.is-expanded')) { setDoorExpanded(null); return; }
   const demo = t.closest<HTMLElement>('[data-doordemo]');
   if (demo) {
     let st = doors.get(demo);
@@ -426,6 +476,7 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && expandedDoor) { setDoorExpanded(null); return; }
   const tab = (e.target as HTMLElement).closest<HTMLElement>('[data-flow-tab]');
   if (tab && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
     e.preventDefault();
@@ -519,7 +570,7 @@ function swap(fn: () => void, before?: () => HTMLElement | null, after: () => HT
 function showDetail(slug: string) {
   const p = bySlug(slug);
   if (!p) { location.hash = '#/'; return; }
-  if (view === 'home') { homeScroll = scrollY; cameFromHome = true; }
+  if (view === 'home') { homeScroll = scrollY; }
   swap(() => {
     teardownDetail();
     homeEl.hidden = true; detailEl.hidden = false;
@@ -544,10 +595,16 @@ function showHome(section: string) {
     view = 'home';
     initDoors(homeEl);
     document.title = 'Hassen Mtiri — 3D Artist & Unity Developer';
-    const target = section && document.getElementById(section);
-    if (wasDetail && !navIntent) scrollTo(0, homeScroll);
-    else if (target) target.scrollIntoView({ behavior: prefersReducedMotion() || wasDetail ? 'auto' : 'smooth' });
-    else if (wasDetail) scrollTo(0, 0);
+    const target = (section && document.getElementById(section)) || (slug && document.getElementById(slug));
+    if (wasDetail && !navIntent && homeScroll > 0) {
+      scrollTo(0, homeScroll);
+    } else if (target) {
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: prefersReducedMotion() || wasDetail ? 'auto' : 'smooth' });
+      });
+    } else {
+      scrollTo(0, 0);
+    }
   };
   if (wasDetail) swap(fn, () => $('.dhero__img', detailEl), () => $(`#${slug} img`, homeEl));
   else fn();

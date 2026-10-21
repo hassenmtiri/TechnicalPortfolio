@@ -2,10 +2,15 @@ import {
   ACESFilmicToneMapping,
   AnimationMixer,
   Box3,
+  BoxGeometry,
   Color,
   DirectionalLight,
+  EdgesGeometry,
+  GridHelper,
   Group,
   HemisphereLight,
+  LineBasicMaterial,
+  LineSegments,
   LoopOnce,
   Mesh,
   MeshStandardMaterial,
@@ -22,6 +27,7 @@ import {
   type Texture,
 } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export interface DoorOptions {
   glbUrl: string | null;
@@ -33,6 +39,8 @@ export interface DoorOptions {
 }
 
 export interface DoorApi {
+  /** Enlarged mode: enables wheel/pinch zoom and re-fits the canvas. */
+  setExpanded(on: boolean): void;
   toggle(): void;
   toggleDissolve(): void;
   dispose(): void;
@@ -68,7 +76,9 @@ export async function mountDoor(host: HTMLElement, o: DoorOptions): Promise<Door
   pmremGenerator.dispose();
 
   const camera = new PerspectiveCamera(35, 1, 0.1, 100);
-  camera.position.set(0, 0, 7.8);
+  // Start slightly off-axis and above so the door reads as a 3D object (not a flat picture) at first glance.
+  camera.position.set(2.3, 1.1, 7.4);
+  camera.lookAt(0, 0, 0);
 
   // Soft sky/floor ambient hemisphere
   scene.add(new HemisphereLight(0xffffff, 0x1e2838, 2.2));
@@ -103,6 +113,44 @@ export async function mountDoor(host: HTMLElement, o: DoorOptions): Promise<Door
 
   const rig = new Group();
   scene.add(rig);
+
+  /* "3D box" stage: a glowing wireframe cube + floor grid around the door so it clearly reads as a real 3D model. */
+  const stage = new Group();
+  scene.add(stage);
+  const buildStage = (size: Vector3, s: number) => {
+    const longest = Math.max(size.x, size.y, size.z) * s;
+    const w = size.x * s * 1.2;
+    const h = size.y * s * 1.2;
+    const d = Math.max(size.z * s * 1.6, longest * 0.5);
+    const geo = track(new BoxGeometry(w, h, d));
+    const edges = track(new EdgesGeometry(geo));
+    const lineMat = track(new LineBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.5 }));
+    stage.add(new LineSegments(edges, lineMat));
+    const grid = new GridHelper(Math.max(w, d) * 1.6, 14, 0x00f0ff, 0x2b3a55);
+    const gm = grid.material as LineBasicMaterial;
+    gm.transparent = true;
+    gm.opacity = 0.4;
+    gm.depthWrite = false;
+    track(gm);
+    track(grid.geometry);
+    grid.position.y = -h / 2;
+    stage.add(grid);
+  };
+
+  const controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = false; // keeps the render loop on-demand (zero idle GPU cost)
+  controls.enablePan = false;
+  controls.enableZoom = false; // wheel zoom only in enlarged mode, so page scrolling is never hijacked
+  controls.minDistance = 4.5;
+  controls.maxDistance = 13;
+  controls.minAzimuthAngle = -1.3;
+  controls.maxAzimuthAngle = 1.3;
+  controls.minPolarAngle = 0.75;
+  controls.maxPolarAngle = 2.1;
+  controls.target.set(0, 0, 0);
+  controls.update();
+  canvas.style.touchAction = 'pan-y'; // vertical swipes still scroll the page on phones
+  disposables.push({ dispose: () => controls.dispose() });
 
   let mixer: AnimationMixer | null = null;
   const actions: AnimationAction[] = [];
@@ -196,9 +244,10 @@ export async function mountDoor(host: HTMLElement, o: DoorOptions): Promise<Door
         model.position.sub(center);
         const maxDim = Math.max(size.x, size.y, size.z);
         if (maxDim > 0) {
-          const targetSize = 3.3;
+          const targetSize = 2.9;
           const s = targetSize / maxDim;
           rig.scale.setScalar(s);
+          buildStage(size, s);
         }
       }
 
@@ -322,7 +371,7 @@ export async function mountDoor(host: HTMLElement, o: DoorOptions): Promise<Door
     const h = host.clientHeight || Math.round(w * 0.62);
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    camera.position.z = w / h < 1 ? 9.2 : 7.8;
+    camera.fov = w / h < 1 ? 46 : 35; // narrower boxes need a wider lens so the whole 3D box stays in frame
     camera.updateProjectionMatrix();
     render();
   };
@@ -330,21 +379,42 @@ export async function mountDoor(host: HTMLElement, o: DoorOptions): Promise<Door
   const ro = new ResizeObserver(resize);
   ro.observe(host);
 
-  const onMove = (e: PointerEvent) => {
-    if (o.reduceMotion || e.pointerType !== 'mouse') return;
-    const r = canvas.getBoundingClientRect();
-    rig.rotation.y = ((e.clientX - r.left) / r.width - 0.5) * 0.35;
-    rig.rotation.x = ((e.clientY - r.top) / r.height - 0.5) * 0.15;
+  // Orbit drags re-render only while the user is actually moving the camera.
+  const onControlsChange = () => {
     if (!raf) render();
   };
+  controls.addEventListener('change', onControlsChange);
 
-  canvas.addEventListener('pointermove', onMove);
-  canvas.addEventListener('click', toggle);
+  // A click opens/closes the door, but a drag (rotating the box) must not.
+  let downX = 0;
+  let downY = 0;
+  const onDown = (e: PointerEvent) => {
+    downX = e.clientX;
+    downY = e.clientY;
+  };
+  const onClick = (e: MouseEvent) => {
+    if (Math.hypot(e.clientX - downX, e.clientY - downY) > 6) return;
+    toggle();
+  };
+  canvas.addEventListener('pointerdown', onDown);
+  canvas.addEventListener('click', onClick);
 
   resize();
   emit();
 
   return {
+    setExpanded(on: boolean) {
+      controls.enableZoom = on;
+      controls.enablePan = on;
+      canvas.style.touchAction = on ? 'none' : 'pan-y';
+      if (!on) {
+        // return to the default framing when the enlarged view is closed
+        camera.position.set(2.3, 1.1, 7.4);
+        controls.target.set(0, 0, 0);
+        controls.update();
+      }
+      resize();
+    },
     toggle,
     toggleDissolve() {
       dissolved = !dissolved;
@@ -367,8 +437,9 @@ export async function mountDoor(host: HTMLElement, o: DoorOptions): Promise<Door
       cancelAnimationFrame(raf);
       raf = 0;
       ro.disconnect();
-      canvas.removeEventListener('pointermove', onMove);
-      canvas.removeEventListener('click', toggle);
+      controls.removeEventListener('change', onControlsChange);
+      canvas.removeEventListener('pointerdown', onDown);
+      canvas.removeEventListener('click', onClick);
       disposables.forEach((d) => d.dispose());
       renderer.forceContextLoss();
       canvas.remove();
